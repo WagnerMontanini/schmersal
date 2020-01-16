@@ -1,18 +1,22 @@
 package com.example.schmersaladm;
 
+import android.content.Intent;
 import android.os.Bundle;
 
+import com.beardedhen.androidbootstrap.BootstrapDropDown;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.view.MenuItem;
 import android.view.View;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.annotation.NonNull;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
+import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -20,10 +24,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private BootstrapDropDown drop_down_categoria;
+
+    String [] ItensList={"Iten 1", "Iten 1", "Iten 1", "Iten 1", "Iten 1"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        database = FirebaseDatabase.getInstance();
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -48,9 +65,12 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_tools, R.id.nav_share, R.id.nav_send)
                 .setDrawerLayout(drawer)
                 .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,ItensList);
+
+        MaterialBetterSpinner ItensDropDown = (MaterialBetterSpinner) findViewById(R.id.drop_down_categoria);
+        ItensDropDown.setAdapter(arrayAdapter);
+
     }
 
     @Override
@@ -61,9 +81,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_desconectar:
+                mAuth.signOut();
+                voltarTelaLogin();
+            default:
+                return  super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void voltarTelaLogin(){
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+        Toast.makeText(this, "Usuário Desconectado", Toast.LENGTH_SHORT).show();
     }
 }
