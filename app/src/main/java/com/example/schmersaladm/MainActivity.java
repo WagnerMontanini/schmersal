@@ -3,7 +3,8 @@ package com.example.schmersaladm;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.beardedhen.androidbootstrap.BootstrapDropDown;
+import com.firebase.ui.database.FirebaseListAdapter;
+import com.firebase.ui.database.FirebaseListOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -15,8 +16,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -24,17 +25,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
-import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
-    private BootstrapDropDown drop_down_categoria;
-
-    String [] ItensList={"Iten 1", "Iten 1", "Iten 1", "Iten 1", "Iten 1"};
+    private ListView listDados;
+    private ArrayList<String> listaDadosFireBase = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
 
+        listDados = (ListView)findViewById(R.id.listDados);
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -66,10 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 .setDrawerLayout(drawer)
                 .build();
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,ItensList);
-
-        MaterialBetterSpinner ItensDropDown = (MaterialBetterSpinner) findViewById(R.id.drop_down_categoria);
-        ItensDropDown.setAdapter(arrayAdapter);
+        recuperarDados();
 
     }
 
@@ -96,5 +99,26 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
         Toast.makeText(this, "Usuário Desconectado", Toast.LENGTH_SHORT).show();
+    }
+
+    public void recuperarDados(){
+
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference ref = database.getReferenceFromUrl("https://schmersal-a610a.firebaseio.com/Confiance 222s/Problemas_Falhas/Eventos/");
+
+        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
+                .setQuery(ref, String.class)
+                .setLayout(android.R.layout.simple_list_item_1)
+                .build();
+
+        FirebaseListAdapter<String> adaptador = new FirebaseListAdapter<String>(options){
+            @Override
+            protected void populateView(@NonNull View v, @NonNull String model, int position) {
+                TextView textView = (TextView) v.findViewById(android.R.id.text1);
+                textView.setText(model);
+            }
+        };
+        listDados.setAdapter(adaptador);
+
     }
 }

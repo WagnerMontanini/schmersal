@@ -36,6 +36,7 @@ dependencies {
     implementation 'com.beardedhen:androidbootstrap:2.3.2'
     implementation 'com.google.firebase:firebase-auth:19.1.0'
     implementation 'com.google.firebase:firebase-database:19.2.0'
+    implementation 'com.firebaseui:firebase-ui-database:6.2.0'
 
 }
 

@@ -10,42 +10,9 @@
     android:layout_margin="16dp"
     android:gravity="center">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cadastrar Videos Suporte Confiance 222s" />
-
-    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
-        android:id="@+id/drop_down_categoria"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Selecione a categoria"
-
-        />
-
-    <com.beardedhen.androidbootstrap.BootstrapEditText
-        android:id="@+id/edtTitulo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="Titulo"
-        android:inputType="text"
-        app:bootstrapSize="xl"
-        app:roundedCorners="true"
-        app:bootstrapBrand="info"
-        />
-
-    <com.beardedhen.androidbootstrap.BootstrapEditText
-        android:id="@+id/edtLink"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="Link do video"
-        android:inputType="textUri"
-        app:bootstrapSize="xl"
-        app:roundedCorners="true"
-        app:bootstrapBrand="info"
-        />
-
+   <ListView
+       android:id="@+id/listDados"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"/>
 
 </LinearLayout>
