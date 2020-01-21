@@ -8,6 +8,7 @@ import com.firebase.ui.database.FirebaseListOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -15,9 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -25,11 +30,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -37,8 +45,10 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
     private ListView listDados;
-    private ArrayList<String> listaDadosFireBase = new ArrayList<>();
+    private List<Map<String, Object>> listaDadosFirebase = new ArrayList<Map<String, Object>>();
+    private ArrayAdapter<Map<String, Object>> arrayAdapterDados;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,13 +65,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
-
-        database = FirebaseDatabase.getInstance();
-
-        listDados = (ListView)findViewById(R.id.listDados);
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -71,9 +74,19 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_tools, R.id.nav_share, R.id.nav_send)
                 .setDrawerLayout(drawer)
                 .build();
-
+        inicializarFirebase();
+        listDados = (ListView)findViewById(R.id.listDados);
         recuperarDados();
 
+    }
+
+    private void inicializarFirebase() {
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseApp.initializeApp(MainActivity.this);
+        database = FirebaseDatabase.getInstance();
+        database.setPersistenceEnabled(true);
+        databaseReference = database.getReference();
     }
 
     @Override
@@ -103,22 +116,33 @@ public class MainActivity extends AppCompatActivity {
 
     public void recuperarDados(){
 
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference ref = database.getReferenceFromUrl("https://schmersal-a610a.firebaseio.com/Confiance 222s/Problemas_Falhas/Eventos/");
-
-        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
-                .setQuery(ref, String.class)
-                .setLayout(android.R.layout.simple_list_item_1)
-                .build();
-
-        FirebaseListAdapter<String> adaptador = new FirebaseListAdapter<String>(options){
+        // Read from the database
+        databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
-            protected void populateView(@NonNull View v, @NonNull String model, int position) {
-                TextView textView = (TextView) v.findViewById(android.R.id.text1);
-                textView.setText(model);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                listaDadosFirebase.clear();
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                listaDadosFirebase.add(map);
+                arrayAdapterDados = new ArrayAdapter<Map<String, Object>>(MainActivity.this,
+                        android.R.layout.simple_list_item_1,listaDadosFirebase);
+                listDados.setAdapter(arrayAdapterDados);
+                for (String key :  map.keySet()) {
+                    Object value = map.get(key);
+                    Log.w("TAG", "O valor é:"+ value );
+                    System.out.println (map.keySet());
+                }
+                //Log.w("TAG", "O valor é:"+ map.keySet() );
+
             }
-        };
-        listDados.setAdapter(adaptador);
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w("TAG", "Failed to read value.", error.toException());
+            }
+        });
 
     }
 }
