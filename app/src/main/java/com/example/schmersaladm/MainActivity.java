@@ -5,6 +5,8 @@ import android.os.Bundle;
 
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -23,6 +25,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -35,7 +40,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
     private DatabaseReference databaseReference;
+    private FirebaseFirestore db;
     private ListView listDados;
     private List<Map<String, Object>> listaDadosFirebase = new ArrayList<Map<String, Object>>();
     private ArrayAdapter<Map<String, Object>> arrayAdapterDados;
@@ -77,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         inicializarFirebase();
         listDados = (ListView)findViewById(R.id.listDados);
         recuperarDados();
+        recuperarDadosCloudFirestore();
 
     }
 
@@ -87,6 +96,10 @@ public class MainActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         database.setPersistenceEnabled(true);
         databaseReference = database.getReference();
+
+        //Inicializar o Cloud Firestore
+        // Access a Cloud Firestore instance from your Activity
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
     }
 
     @Override
@@ -120,18 +133,43 @@ public class MainActivity extends AppCompatActivity {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                listaDadosFirebase.clear();
+                //listaDadosFirebase.clear();
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                listaDadosFirebase.add(map);
-                arrayAdapterDados = new ArrayAdapter<Map<String, Object>>(MainActivity.this,
-                        android.R.layout.simple_list_item_1,listaDadosFirebase);
-                listDados.setAdapter(arrayAdapterDados);
-                for (String key :  map.keySet()) {
-                    Object value = map.get(key);
-                    Log.w("TAG", "O valor é:"+ value );
-                    System.out.println (map.keySet());
+                Map<String, Object> map = (HashMap<String, Object>) dataSnapshot.getValue();
+                //listaDadosFirebase.add(map);
+                //arrayAdapterDados = new ArrayAdapter<Map<String, Object>>(MainActivity.this,
+                       // android.R.layout.simple_list_item_1,listaDadosFirebase);
+                //listDados.setAdapter(arrayAdapterDados);
+                for (String key : map.keySet()) {
+                    Object mapString = map.get(key);
+                    if(mapString != null) {
+                        //Capturamos o valor a partir da chave
+                        Map<String, Object> tipoProdutoSuporte = (HashMap<String, Object>) mapString;
+                        for (String keytipo : tipoProdutoSuporte.keySet()) {
+                            Object tipoProdutoSuporteString = tipoProdutoSuporte.get(keytipo);
+                            if(tipoProdutoSuporteString != null) {
+                                Map<String, Object> tipoProdutoSuporte2 = (HashMap<String, Object>) tipoProdutoSuporteString;
+                                for (String keytipo2 : tipoProdutoSuporte2.keySet()) {
+                                    Object tipoProdutoSuporte2String = tipoProdutoSuporte2.get(keytipo2);
+                                    if (tipoProdutoSuporte2String != null && tipoProdutoSuporte2String != "") {
+                                        Map<String, Object> tipoProdutoSuporte3 = (HashMap<String, Object>) tipoProdutoSuporte2String;
+                                        for (String keytipo3 : tipoProdutoSuporte3.keySet()) {
+                                            Object tipoProdutoSuporte3String = tipoProdutoSuporte3.get(keytipo3);
+                                            if (tipoProdutoSuporte3String != null  ) {
+                                                //listaDadosFirebase.add(tipoProdutoSuporte3);
+                                                //arrayAdapterDados = new ArrayAdapter<Map<String, Object>>(MainActivity.this,
+                                                //    android.R.layout.simple_list_item_1,listaDadosFirebase);
+                                                //listDados.setAdapter(arrayAdapterDados);
+                                                System.out.println("dados" + key + " = " + keytipo + " = " + keytipo2 + " = " + keytipo3 + " = " + tipoProdutoSuporte3String  );
+                                            }
+                                        }
+                                    }
+                                   //System.out.println(key + " = " + keytipo + " = " + keytipo2 + " = " + tipoProdutoSuporte2String);
+                                }
+                            }
+                        }
+                    }
                 }
                 //Log.w("TAG", "O valor é:"+ map.keySet() );
 
@@ -144,5 +182,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void recuperarDadosCloudFirestore(){
+        //FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("Confiance 222s")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("TAG", document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            Log.w("TAG", "Error getting documents.", task.getException());
+                        }
+                    }
+                });
     }
 }
